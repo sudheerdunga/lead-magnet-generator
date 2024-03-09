@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model LeadMagnet {
+  id                     String    @id @default(uuid())
+  userId                 String
+  name                   String
+  status                 String
+  slug                   String?
+  publishedTitle         String
+  draftTitle             String
+  publishedSubtitle      String
+  draftSubtitle          String
+  publishedPrompt        String
+  draftPrompt            String
+  publishedBody          String
+  draftBody              String
+  publishedFirstQuestion String
+  draftFirstQuestion     String
+  publishedEmailCapture  String
+  draftEmailCapture      String
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @default(now())
+  publishedAt            DateTime? @db.Timestamp(6)
+  pageViews              Int       @default(0)
+  leads                  Lead[]
+
+  @@unique([userId, slug])
+}
+
+model Lead {
+  id           String     @id @default(uuid())
+  userId       String
+  leadMagnetId String
+  name         String
+  email        String
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @default(now())
+  LeadMagnet   LeadMagnet @relation(fields: [leadMagnetId], references: [id], onDelete: Cascade)
+
+  @@index([leadMagnetId])
+  @@index([userId])
+}
+
+model Profile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  title           String
+  description     String
+  profileImageUrl String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Account {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  email     String   @unique
+  username  String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([username])
+}
+
+model Subscription {
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripeCurrentPeriodEnd DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @default(now())
+
+  @@index([userId])
+}
